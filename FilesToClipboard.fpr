@@ -1,0 +1,44 @@
+program FilesToClipboard;
+
+{$mode delphi}
+
+uses Windows, ShlObj, SysUtils;
+
+procedure CopyFilesToClipboard(FileList: String);
+var
+  DropFiles: PDropFiles;
+  hGlobal: THandle;
+  Len: Integer;
+begin
+  Len := Length(FileList) + 2;
+  FileList := FileList + #0#0;
+
+  hGlobal := GlobalAlloc(GMEM_SHARE or GMEM_MOVEABLE or GMEM_ZEROINIT, SizeOf(TDropFiles) + Len);
+  if hGlobal = 0 then
+    raise Exception.Create('Could not allocate memory.');
+
+  DropFiles := GlobalLock(hGlobal);
+  DropFiles^.pFiles := SizeOf(TDropFiles);
+  Move(FileList[1], (PChar(DropFiles) + SizeOf(TDropFiles))^, Len);
+  GlobalUnlock(hGlobal);
+  OpenClipboard(0);
+  EmptyClipboard;
+  SetClipboardData(CF_HDROP, hGlobal);
+  CloseClipboard;
+  GlobalDiscard(hGlobal);
+end;
+
+var
+  FileList: String;
+  I: Integer;
+begin
+  if ParamCount > 1 then begin
+    FileList := '';
+    for I := 0 to ParamCount - 1 do begin
+      if FileList <> '' then
+        FileList := FileList + #0;
+      FileList := FileList + ParamStr(I);
+    end;
+    CopyFilesToClipboard(FileList);
+  end;
+end.
