@@ -29,15 +29,17 @@ begin
 end;
 
 var
-  FileList: String;
+  FileList, FilePath: String;
   I: Integer;
 begin
-  if ParamCount > 1 then begin
+  if ParamCount > 0 then begin
     FileList := '';
-    for I := 0 to ParamCount - 1 do begin
+    for I := 1 to ParamCount do begin
       if FileList <> '' then
         FileList := FileList + #0;
-      FileList := FileList + ParamStr(I);
+      FilePath := ExpandFileName(ParamStr(I));
+      Writeln(FilePath);
+      FileList := FileList + FilePath;
     end;
     CopyFilesToClipboard(FileList);
   end;
